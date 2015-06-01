@@ -192,7 +192,7 @@ let rec _run added_profiles profile opam_repo_target profiles_url ssl_no_verify 
       | true -> print @@ "WARNING: Skipping profile \"" ^ profile.name ^ "to avoid cycling!";
        `Ok set, `Continue
       | false -> begin
-        let set = StringSet.add profile.name added_profiles in
+        let set = StringSet.add profile.name set in
         match _run set profile.name opam_repo_target profile.url ssl_no_verify
       with 
       | `Ok _  -> `Ok set, `Continue
