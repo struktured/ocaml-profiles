@@ -4,7 +4,7 @@ Stores opam configurations on branches or tags for bootstrapping ocaml environme
 ## Installation
 
 ```
-git clone https://github.co/struktured/ocaml-profiles -b stable
+git clone https://github.com/struktured/ocaml-profiles -b stable
 ./pin.sh
 ```
 
