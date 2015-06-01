@@ -122,7 +122,6 @@ let profiles_branch_prefix = "profiles"
 
 let checkout_profile ~ssl_no_verify profile url =
   let profile_dir = profile_dir profile in
-  FileUtil.rm ~recurse:true ~force:FileUtil.Force [profiles_dir];
   let ssl_no_verify = match ssl_no_verify with
   | true -> Some true
   | false -> None in
@@ -215,4 +214,5 @@ let safe_cmd =
   with e -> ignore(clean_profiles_dir()); raise e
 
 let () =
+  ignore(clean_profiles_dir());
   match safe_cmd with `Error _ -> exit 1 | _ -> exit 0
