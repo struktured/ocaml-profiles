@@ -186,16 +186,19 @@ let rec _run profile opam_repo_target profiles_url ssl_no_verify =
  let add_profiles added_profiles =
   let profiles = load_profiles profile profiles_url in
   CCList.fold_while 
-    (fun set (profile:profile) ->
+    (fun r profile -> match r with
+    | `Ok set -> begin
       match StringSet.exists ((=) profile.name) set with
       | true -> print @@ "WARNING: Skipping profile \"" ^ profile.name ^ "to avoid cycling!";
-       `Ok added_profiles, `Continue
+       `Ok set, `Continue
       | false -> begin
-      let set = StringSet.add profile.name added_profiles in
-      match _run profile.name opam_repo_target profile.url ssl_no_verify
+        let set = StringSet.add profile.name added_profiles in
+        match _run profile.name opam_repo_target profile.url ssl_no_verify
       with 
       | `Ok _  -> `Ok set, `Continue
-      |  e -> e, `Stop end) (`Ok added_profiles) profiles in
+      | e -> e, `Stop end end
+    | e -> e, `Stop
+      ) (`Ok added_profiles) profiles in
   print @@ Printf.sprintf 
     "Applying profile \"%s\" to opam repository \"%s\". \n"
     profile opam_repo_target;
