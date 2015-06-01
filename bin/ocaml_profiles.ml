@@ -76,7 +76,7 @@ end
 
 type pin_entry = {name:string;kind:Kind.t; target:string}
 
-let pins profile =
+let _pins profile =
   let file = pinned_config_file profile in open_in file |>
   Std.input_list |>
   List.map String.trim |>
@@ -86,6 +86,9 @@ let pins profile =
              {name;kind=Kind.of_string kind;target} | 
                l -> failwith("unxpected number of columns for line: " ^
                                  String.concat " " l))
+
+let pins p = try _pins p with _ -> []
+
 let read_all (dir:string) = 
   let dir = Unix.opendir dir in
   let rec iter l = try 
