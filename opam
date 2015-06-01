@@ -1,0 +1,23 @@
+opam-version: "1.2"
+name: "ocaml-profiles"
+version: "dev"
+author : "Carmelo Piccione carmelo.piccione@theice.com"
+maintainer: "carmelo.piccione@theice.com"
+homepage: "https://github.com/struktured/ocaml-profiles/"
+dev-repo: "https://github.com/struktured/ocaml-profiles.git"
+bug-reports: "https://github.com/struktured/ocaml-profiles"
+
+build: [
+  ["./configure" "--bindir" bin]
+  [make]
+]
+
+install: [
+  [make "install"]
+]
+
+remove: [
+  [rm "%{bin}%/ocaml-profiles"]
+]
+
+depends: [ "oasis" {build} "extlib" "fileutils" "re" "containers" "sequence" "gen" "cmdliner" "shell-support" ]
