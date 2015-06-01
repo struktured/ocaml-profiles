@@ -130,7 +130,7 @@ let checkout_profile ~ssl_no_verify profile url =
   | false -> None in
   let qualified_profile = profiles_branch_prefix ^ "/" ^ profile in
   Git.clone ?ssl_no_verify
-    ~single_branch:true ~target:profile_dir ~branch_or_tag:qualified_profile url
+    (* ~single_branch:true *) ~target:profile_dir ~branch_or_tag:qualified_profile url
 
 let add_pins profile =
   let pins = pins profile in
