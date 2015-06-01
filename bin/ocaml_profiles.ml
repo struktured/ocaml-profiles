@@ -38,19 +38,25 @@ let profiles_config_file profile = FilePath.concat (profile_dir profile)
     profiles_file_name
 
 let pins profile =
-  let file = pinned_config_file profile in open_in file |>
-  Std.input_list
+  try
+   let file = pinned_config_file profile in open_in file |>
+   Std.input_list
+  with _ -> []
 
 let profiles profile =
-  let file = profiles_config_file profile in open_in file |>
-  Std.input_list
+  try
+    let file = profiles_config_file profile in open_in file |>
+    Std.input_list
+  with _ -> []
 
 let package_config_file profile = FilePath.concat (profile_dir profile)
     package_file_name
 
 let packages profile =
-  let file = package_config_file profile in open_in file |>
-  Std.input_list |> List.map (fun s -> Re.split (Re_posix.compile_pat " ") s) |> List.flatten
+  try 
+    let file = package_config_file profile in open_in file |>
+    Std.input_list |> List.map (fun s -> Re.split (Re_posix.compile_pat " ") s) |> List.flatten
+  with _ -> []
 
 let pinned_config_file_target opam_repo_target compiler_version
   = FilePath.concat opam_repo_target @@
@@ -129,7 +135,7 @@ let add_pins profile =
   let remove_pin {name;kind;target} =
       Shell.system @@ Printf.sprintf "opam pin -n -y remove %s" name in
   let add_pin {name;kind;target} =
-      Shell.system @@ Printf.sprintf "opam pin -y add -k %s %s %s"
+      Shell.system @@ Printf.sprintf "opam pin -n -y add -k %s %s %s"
         (Kind.to_string kind) name target in
   let remove_add p = remove_pin p >>= fun s -> print s; add_pin p >>=
     fun s -> print s; `Ok ("added and removed " ^ p.name) in
