@@ -83,7 +83,7 @@ let _pins profile =
   List.filter (fun s -> String.length s > 0) |>
   List.map (fun s -> Re.split (Re_posix.compile_pat " ") s) |>
   List.map (function [name;kind;target] ->
-             {name;kind=Kind.of_string kind;target} | 
+             {name;kind=Kind.of_string kind;target} |
                l -> failwith("unxpected number of columns for line: " ^
                                  String.concat " " l))
 
@@ -182,7 +182,7 @@ let ok_or_fail ret = match ret with
 let clean_profiles_dir () =
   `Ok (FileUtil.rm ~recurse:true ~force:FileUtil.Force [profiles_dir])
 
-let rec run profile opam_repo_target compiler_version profiles_url ssl_no_verify =
+let rec _run profile opam_repo_target profiles_url ssl_no_verify =
  let add_profiles added_profiles =
   let profiles = load_profiles profile profiles_url in
   CCList.fold_while 
@@ -192,18 +192,21 @@ let rec run profile opam_repo_target compiler_version profiles_url ssl_no_verify
        `Ok added_profiles, `Continue
       | false -> begin
       let set = StringSet.add profile.name added_profiles in
-      match run profile.name opam_repo_target compiler_version profile.url ssl_no_verify
+      match _run profile.name opam_repo_target profile.url ssl_no_verify
       with 
       | `Ok _  -> `Ok set, `Continue
       |  e -> e, `Stop end) (`Ok added_profiles) profiles in
-
-  print @@ Printf.sprintf "\"%s\" to opam repository \"%s\" with
-  compiler version %s...\n" profile opam_repo_target compiler_version;
-  ignore(ok_or_fail @@ opam_switch ~ssl_no_verify profile compiler_version);
+  print @@ Printf.sprintf 
+    "Applying profile \"%s\" to opam repository \"%s\". \n"
+    profile opam_repo_target;
   ignore(ok_or_fail @@ checkout_profile ~ssl_no_verify profile profiles_url);
   let set = ok_or_fail @@ add_profiles StringSet.empty in
   ignore(ok_or_fail @@ add_pins profile);
   ignore(ok_or_fail @@ install_packages ~ssl_no_verify profile);`Ok set
+
+let run profile opam_repo_target compiler_version profiles_url ssl_no_verify =
+  ignore(ok_or_fail @@ opam_switch ~ssl_no_verify profile compiler_version);
+  _run profile opam_repo_target profiles_url ssl_no_verify
 
 let cmd =
   let doc = "Apply an ocaml profile to a target opam repository" in
