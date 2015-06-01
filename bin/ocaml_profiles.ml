@@ -187,7 +187,7 @@ let rec _run profile opam_repo_target profiles_url ssl_no_verify =
   let profiles = load_profiles profile profiles_url in
   CCList.fold_while 
     (fun set (profile:profile) ->
-      match StringSet.exists ((=) profile.name) added_profiles with
+      match StringSet.exists ((=) profile.name) set with
       | true -> print @@ "WARNING: Skipping profile \"" ^ profile.name ^ "to avoid cycling!";
        `Ok added_profiles, `Continue
       | false -> begin
