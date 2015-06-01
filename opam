@@ -17,7 +17,7 @@ install: [
 ]
 
 remove: [
-  ["ocamlfind" "remove" "ocaml-profies"]
+  ["ocamlfind" "remove" "ocaml-profiles"]
   ["rm" "-f" "%{bin}%/ocaml-profiles"]
 ]
 

@@ -1,0 +1,34 @@
+# OASIS_START
+# DO NOT EDIT (digest: f078b6faf1b7de607b270c96a482db58)
+# Ignore VCS directories, you can use the same kind of rule outside
+# OASIS_START/STOP if you want to exclude directories that contains
+# useless stuff for the build process
+true: annot, bin_annot
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
+# Executable ocaml-profiles
+"bin/ocaml_profiles.byte": pkg_cmdliner
+"bin/ocaml_profiles.byte": pkg_containers
+"bin/ocaml_profiles.byte": pkg_extlib
+"bin/ocaml_profiles.byte": pkg_fileutils
+"bin/ocaml_profiles.byte": pkg_gen
+"bin/ocaml_profiles.byte": pkg_re
+"bin/ocaml_profiles.byte": pkg_sequence
+"bin/ocaml_profiles.byte": pkg_shell_support
+<bin/*.ml{,i,y}>: pkg_cmdliner
+<bin/*.ml{,i,y}>: pkg_containers
+<bin/*.ml{,i,y}>: pkg_extlib
+<bin/*.ml{,i,y}>: pkg_fileutils
+<bin/*.ml{,i,y}>: pkg_gen
+<bin/*.ml{,i,y}>: pkg_re
+<bin/*.ml{,i,y}>: pkg_sequence
+<bin/*.ml{,i,y}>: pkg_shell_support
+# OASIS_STOP
