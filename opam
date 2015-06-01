@@ -17,7 +17,8 @@ install: [
 ]
 
 remove: [
-  [rm "%{bin}%/ocaml-profiles"]
+  ["ocamlfind" "remove" "ocaml-profies"]
+  ["rm" "-f" "%{bin}%/ocaml-profiles"]
 ]
 
 depends: [ "oasis" {build} "extlib" "fileutils" "re" "containers" "sequence" "gen" "cmdliner" "shell-support" ]

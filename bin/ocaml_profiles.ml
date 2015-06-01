@@ -112,17 +112,17 @@ open Shell.Infix
 
 let print s = print_endline @@ Printf.sprintf "[ocaml-profiles]: %s\n" s
 
+let profiles_branch_prefix = "profiles"
+
 let checkout_profile ~ssl_no_verify profile url =
   let profile_dir = profile_dir profile in
   FileUtil.rm ~recurse:true ~force:FileUtil.Force [profiles_dir];
   let ssl_no_verify = match ssl_no_verify with
   | true -> Some true
   | false -> None in
-  match Git.clone ?ssl_no_verify
-    ~single_branch:true ~target:profile_dir ~branch_or_tag:profile url with
-  | `Error _ -> Git.clone
-      ~target:profile_dir ~branch_or_tag:("profiles/" ^ profile) url
-  | `Ok _ as o -> o
+  let qualified_profile = profiles_branch_prefix ^ "/" ^ profile in
+  Git.clone ?ssl_no_verify
+    ~single_branch:true ~target:profile_dir ~branch_or_tag:qualified_profile url
 
 let add_pins profile =
   let pins = pins profile in
