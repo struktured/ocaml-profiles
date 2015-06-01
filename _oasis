@@ -1,0 +1,17 @@
+OASISFormat: 0.4
+Name:        ocaml-profiles
+Version:     0.1
+License:     MIT
+LicenseFile: LICENSE.txt
+Authors:     Carmelo Piccione
+Synopsis:    Ocaml Profling Tool
+BuildTools:  ocamlbuild
+Plugins: META (0.4), DevFiles (0.4)
+
+Executable "ocaml-profiles"
+  Build:              true
+  Path:               bin
+  MainIs:             ocaml_profiles.ml
+  BuildDepends:       extlib, fileutils, re, cmdliner, sequence, containers, gen, shell_support
+
+AlphaFeatures : ocamlbuild_more_args
