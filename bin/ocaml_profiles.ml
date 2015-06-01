@@ -193,7 +193,7 @@ let rec _run added_profiles profile opam_repo_target profiles_url ssl_no_verify 
        `Ok set, `Continue
       | false -> begin
         let set = StringSet.add profile.name added_profiles in
-        match _run added_profiles profile.name opam_repo_target profile.url ssl_no_verify
+        match _run set profile.name opam_repo_target profile.url ssl_no_verify
       with 
       | `Ok _  -> `Ok set, `Continue
       | e -> e, `Stop end end
