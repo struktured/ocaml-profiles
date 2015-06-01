@@ -1,1 +1,3 @@
-shell-support
+csv re extlib fileutils cmdliner
+ocamlscript
+prob-cache csv riakc_ppx
