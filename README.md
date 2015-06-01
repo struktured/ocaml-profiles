@@ -25,7 +25,7 @@ applying any opam pins and installs as needed.
 ## Listing available profiles
 
 
-## Creating new profi;es.
+## Creating new profiles
 
 
 
