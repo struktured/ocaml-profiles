@@ -97,14 +97,9 @@ let read_all (dir:string) =
       entry::(iter l) with End_of_file -> l in
   iter []
 
-(* TODO not implemented *)
-let get_profiles () = ["None"]
-
 let profile =
-  let doc = "Specifies a profile to apply to the repository. "
-            (* ^ "Possible choices are: \n[" ^ 
-            (String.concat ", " @@ get_profiles ()) ^ "]." *) in
-  Arg.(required & pos 0 (some string) None & info [] ~doc ~docv:"PROFILE")
+  let doc = "Specifies a profile to apply to the repository, or type 'list' to see available profiles." in
+  Arg.(value & pos 0 (string) "list" & info [] ~doc ~docv:"PROFILE")
 
 let opam_repo_target =
   let doc = "Specifies the target opam repository, typically ~/.opam" in
@@ -114,8 +109,12 @@ let opam_repo_target =
 let compiler_version =
   let doc = "Specifies the ocaml compiler version, defaults to " ^
             compiler_version_default in
-  Arg.(value & opt string compiler_version_default & info ["comp";"c"] ~doc
+  Arg.(value & opt string compiler_version_default & info ["c";"comp"] ~doc
          ~docv:"COMPILER_VERSION")
+
+let list_profiles_flag =
+  let doc = "List available profiles to standard output." in
+  Arg.(value & flag & info ["list";"l"] ~doc ~docv:"LIST")
 
 open Shell.Infix
 
@@ -156,6 +155,19 @@ let load_profiles profile url  =
     | [profile'] -> Some {name=profile'; url}
     | profile'::(url'::_) -> Some {name=profile';url=url'}
     | _ -> None) 
+
+let list_profiles url =
+   let open Git.Response.Remote_ref in
+   Git.ls_remote url |> function |`Error _ as e -> e | `Ok r ->
+     print_endline @@ "Available profiles in \"" ^ url ^ "\":";
+     CCList.filter_map (fun r -> match r.ref_type with 
+      | `Branch | `Tag -> 
+          let value = match r.value with
+          | s when CCString.find ~sub:"profiles/" s = 0 -> Some 
+            (String.sub s (String.length "profiles/") (String.length s - String.length "profiles/"))
+          | _ -> None in
+          CCOpt.map (fun v -> "\t" ^ v) value | _ -> None) r |> fun filtered ->
+     List.iter print_endline filtered; `Ok filtered
 
 let opam_switch ?ssl_no_verify profile compiler_version =
   let switch_cmd = ssl_no_verify_str ssl_no_verify ^ " opam switch " ^ compiler_version in
@@ -207,13 +219,18 @@ let rec _run added_profiles profile opam_repo_target profiles_url ssl_no_verify 
   ignore(ok_or_fail @@ add_pins profile);
   ignore(ok_or_fail @@ install_packages ~ssl_no_verify profile);`Ok set
 
-let run profile opam_repo_target compiler_version profiles_url ssl_no_verify =
-  ignore(ok_or_fail @@ opam_switch ~ssl_no_verify profile compiler_version);
-  _run StringSet.empty profile opam_repo_target profiles_url ssl_no_verify
+let run profile opam_repo_target compiler_version profiles_url ssl_no_verify list_profiles_flag =
+  if list_profiles_flag || String.lowercase profile = "list" then 
+    match list_profiles profiles_url with `Ok o -> `Ok (StringSet.of_list o) | `Error _ as e -> e else 
+    begin
+      ignore(ok_or_fail @@ opam_switch ~ssl_no_verify profile compiler_version);
+      _run StringSet.empty profile opam_repo_target profiles_url ssl_no_verify
+    end
 
 let cmd =
   let doc = "Apply an ocaml profile to a target opam repository" in
-  Term.(ret (pure run $ profile $ opam_repo_target $ compiler_version $ profiles_repo_url $ ssl_no_verify)),
+  Term.(ret (pure run $ profile $ opam_repo_target $ compiler_version $ profiles_repo_url $ 
+      ssl_no_verify $ list_profiles_flag)),
   Term.info "ocaml-profiles" ~version:"1.0" ~doc
 
 let safe_cmd =
