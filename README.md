@@ -24,6 +24,14 @@ applying any opam pins and installs as needed.
 
 ## Listing available profiles
 
+Any of the following will list all profiles on the default repository:
+
+```
+ocaml-profiles -list 
+ocaml-profiles list 
+ocaml-profiles -l
+ocaml-profiles
+```
 
 ## Creating new profiles
 
