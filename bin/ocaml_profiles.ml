@@ -56,7 +56,8 @@ let packages profile =
   try 
     let file = package_config_file profile in open_in file |>
     Std.input_list |> List.map (fun s -> Re.split (Re_posix.compile_pat " ") s)
-    |> List.flatten |> CCList.filter_map (String.trim |> fun s -> function "" -> None | s -> Some s)
+                                              |> List.flatten |>
+   CCList.filter_map (fun s -> match String.trim s with "" -> None | s -> Some s)
   with _ -> []
 
 let pinned_config_file_target opam_repo_target compiler_version
@@ -178,6 +179,8 @@ let opam_switch ?ssl_no_verify profile compiler_version =
 
 let install_packages ?ssl_no_verify profile =
   let packages = packages profile in
+  match packages with 
+  | [] -> `Ok ("No packages to install for " ^ profile) | _ ->
   let install_cmd = ssl_no_verify_str ssl_no_verify ^ " opam reinstall -y " ^ (String.concat " " packages) in
   let ret = Sys.command install_cmd in
   if ret != 0 then `Error (false, Printf.sprintf "%s: nonzero exit status: %d"
