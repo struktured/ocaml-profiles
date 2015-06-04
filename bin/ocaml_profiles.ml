@@ -55,7 +55,8 @@ let package_config_file profile = FilePath.concat (profile_dir profile)
 let packages profile =
   try 
     let file = package_config_file profile in open_in file |>
-    Std.input_list |> List.map (fun s -> Re.split (Re_posix.compile_pat " ") s) |> List.flatten
+    Std.input_list |> List.map (fun s -> Re.split (Re_posix.compile_pat " ") s)
+    |> List.flatten |> CCList.filter_map (String.trim |> fun s -> function "" -> None | s -> Some s)
   with _ -> []
 
 let pinned_config_file_target opam_repo_target compiler_version
