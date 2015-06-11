@@ -39,14 +39,13 @@ let profiles_config_file profile = FilePath.concat (profile_dir profile)
 
 let pins profile =
   try
-   let file = pinned_config_file profile in open_in file |>
-   Std.input_list
+   pinned_config_file profile |> Shell.lines_of_file
   with _ -> []
 
 let profiles profile =
   try
-    let file = profiles_config_file profile in open_in file |>
-    Std.input_list
+    profiles_config_file profile |>
+    Shell.lines_of_file
   with _ -> []
 
 let package_config_file profile = FilePath.concat (profile_dir profile)
@@ -54,8 +53,8 @@ let package_config_file profile = FilePath.concat (profile_dir profile)
 
 let packages profile =
   try 
-    let file = package_config_file profile in open_in file |>
-    Std.input_list |> List.map (fun s -> Re.split (Re_posix.compile_pat " ") s)
+    package_config_file profile |>
+    Shell.lines_of_file |> List.map (fun s -> Re.split (Re_posix.compile_pat " ") s)
                                               |> List.flatten |>
    CCList.filter_map (fun s -> match String.trim s with "" -> None | s -> Some s)
   with _ -> []
@@ -79,8 +78,8 @@ end
 type pin_entry = {name:string;kind:Kind.t; target:string}
 
 let _pins profile =
-  let file = pinned_config_file profile in open_in file |>
-  Std.input_list |>
+  pinned_config_file profile |>
+  Shell.lines_of_file|>
   List.map String.trim |>
   List.filter (fun s -> String.length s > 0) |>
   List.map (fun s -> Re.split (Re_posix.compile_pat " ") s) |>
