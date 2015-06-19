@@ -12,6 +12,15 @@ let profiles_repo_url =
             "The OCAML_PROFILES_URL environment variable overrides the default value." in
   Arg.(value & (opt string) (profiles_default_url()) & info ["r";"repo"] ~doc ~docv:"REPO_URL")
 
+let profiles_repo_url =
+  let doc = "Specifies a ocam profile repository to fetch profiles from. " ^
+            "The OCAML_PROFILES_URL environment variable overrides the default value." in
+  Arg.(value & (opt string) (profiles_default_url()) & info ["r";"repo"] ~doc ~docv:"REPO_URL")
+
+let follow_profiles =
+  let doc = "Specifies whether to follow profiles recursively. " in
+  Arg.(value & flag & info ["f";"follow"] ~doc ~docv:"FOLLOW")
+
 let ssl_no_verify =
   let doc = "Use to disable verification for environments with broken certificates." in
   Arg.(value & flag & info ["ssl-no-verify"] ~doc ~docv:"SSL_NO_VERIFY")
@@ -75,9 +84,14 @@ module Kind = struct
    | k -> failwith("unknown kind: " ^ k)
 end
 
-type pin_entry = {name:string;kind:Kind.t; target:string}
+module Pin_entry = struct
+  type t = {name:string;kind:Kind.t; target:string}
+  let to_string t = t.name ^ " " ^ 
+    Kind.to_string t.kind ^ " " ^ t.target
+end
 
 let _pins profile =
+  let open Pin_entry in
   pinned_config_file profile |>
   Shell.lines_of_file|>
   List.map String.trim |>
@@ -98,9 +112,32 @@ let read_all (dir:string) =
       entry::(iter l) with End_of_file -> l in
   iter []
 
+module Operation = 
+  struct 
+    type t = List | Show of string | Apply of string
+
+    let of_string ?(list_profiles_flag=false) first second =
+        if list_profiles_flag then List else
+        match String.lowercase first with
+        | "list" -> List
+        | "show" -> Show second
+        | "apply" -> Apply second
+        | s -> Apply s
+
+    let to_string t =
+      match t with
+       | List -> "list"
+       | Show s -> "show " ^ s
+       | Apply s -> "apply " ^ s
+  end
+
+let operation =
+  let doc = "Specifies a profile to apply to the repository, or an operation of type 'list', 'show', or 'apply'." in
+  Arg.(value & pos 0 (string) "list" & info [] ~doc ~docv:"PROFILE|list|show|apply")
+
 let profile =
-  let doc = "Specifies a profile to apply to the repository, or type 'list' to see available profiles." in
-  Arg.(value & pos 0 (string) "list" & info [] ~doc ~docv:"PROFILE")
+  let doc = "The profile argument for an operation preceding it." in
+  Arg.(value & pos 1 (string) "" & info [] ~doc ~docv:"PROFILE")
 
 let opam_repo_target =
   let doc = "Specifies the target opam repository, typically ~/.opam" in
@@ -133,6 +170,7 @@ let checkout_profile ~ssl_no_verify profile url =
     ~single_branch:true ~target:profile_dir ~branch_or_tag:qualified_profile url
 
 let add_pins profile =
+  let open Pin_entry in
   let pins = pins profile in
   let remove_pin {name;kind;target} =
       Shell.system @@ Printf.sprintf "opam pin -n -y remove %s" name in
@@ -222,18 +260,43 @@ let rec _run added_profiles profile opam_repo_target profiles_url ssl_no_verify 
   ignore(ok_or_fail @@ add_pins profile);
   ignore(ok_or_fail @@ install_packages ~ssl_no_verify profile);`Ok set
 
-let run profile opam_repo_target compiler_version profiles_url ssl_no_verify list_profiles_flag =
-  if list_profiles_flag || String.lowercase profile = "list" then 
-    match list_profiles profiles_url with `Ok o -> `Ok (StringSet.of_list o) | `Error _ as e -> e else 
+
+let show_profile ?(depth=0) ~follow_profiles ~ssl_no_verify profile profiles_url = 
+  ignore(ok_or_fail(checkout_profile ~ssl_no_verify profile profiles_url));
+(*  let profiles' = load_profiles profile profiles_url in*)
+  let open Printf in
+  sprintf "Profile \"%s\":\n" profile ^
+  " profiles:\n\t" ^
+    (String.concat "\n\t" (profiles profile)) ^
+  "\n pins:\n\t" ^
+    (String.concat "\n\t" (pins profile |> List.map Pin_entry.to_string)) ^
+  "\n packages:\n\t" ^
+    (String.concat " " (packages profile)) |>
+  fun s -> print_endline s;`Ok (Operation.to_string (Operation.Show s))
+
+
+let run operation profile opam_repo_target compiler_version profiles_url ssl_no_verify 
+  list_profiles_flag follow_profiles =
+  let op = Operation.of_string ~list_profiles_flag operation profile in
+  let op_to_string = Operation.to_string op in
+  match op with 
+  | Operation.List ->
+    begin 
+      match list_profiles profiles_url with `Ok o -> `Ok op_to_string | `Error _ as e -> e 
+    end
+  | Operation.Apply profile ->
     begin
       ignore(ok_or_fail @@ opam_switch ~ssl_no_verify profile compiler_version);
-      _run StringSet.empty profile opam_repo_target profiles_url ssl_no_verify
+      ignore(ok_or_fail(_run StringSet.empty profile opam_repo_target profiles_url ssl_no_verify));
+      `Ok op_to_string
     end
+  | Operation.Show profile ->
+    show_profile ~follow_profiles ~ssl_no_verify profile profiles_url
 
 let cmd =
   let doc = "Apply an ocaml profile to a target opam repository" in
-  Term.(ret (pure run $ profile $ opam_repo_target $ compiler_version $ profiles_repo_url $ 
-      ssl_no_verify $ list_profiles_flag)),
+  Term.(ret (pure run $ operation $ profile $ opam_repo_target $ compiler_version $ profiles_repo_url $ 
+      ssl_no_verify $ list_profiles_flag $ follow_profiles)),
   Term.info "ocaml-profiles" ~version:"1.0" ~doc
 
 let safe_cmd =
