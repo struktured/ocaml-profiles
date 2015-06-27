@@ -28,7 +28,7 @@ let ssl_no_verify =
 let opam_default () = FilePath.concat (home()) ".opam"
 let pinned_file_name = "pinned"
 let package_file_name = "packages"
-let compiler_version_default = "4.02.1"
+let compiler_version_default = "4.02.2"
 let ssl_no_verify_env = "GIT_SSL_NO_VERIFY"
 
 let ssl_no_verify_str = function
