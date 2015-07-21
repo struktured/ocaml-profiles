@@ -64,7 +64,7 @@ Profile "struktured":
 
 To create a new profile, simply clone any profile from ```profiles/*``` and modify as needed.
 
-Add any customized pins to ```pins```, any packages to install to ```packages``` and any profiles
+Add any customized pins to ```pinned```, any packages to install to ```packages``` and any profiles
 which should be invoked prior to this profile in ```profiles```. 
 
 
