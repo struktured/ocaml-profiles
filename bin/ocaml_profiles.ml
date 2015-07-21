@@ -28,7 +28,11 @@ let ssl_no_verify =
 let opam_default () = FilePath.concat (home()) ".opam"
 let pinned_file_name = "pinned"
 let package_file_name = "packages"
-let compiler_version_default = "4.02.2"
+let compiler_version_default () =
+  try 
+    Shell.run_exn "opam config var ocaml-version"
+    |> String.trim
+  with _ -> "4.02.2"
 let ssl_no_verify_env = "GIT_SSL_NO_VERIFY"
 
 let ssl_no_verify_str = function
@@ -145,9 +149,10 @@ let opam_repo_target =
          ~docv:"OPAM_TARGET")
 
 let compiler_version =
+  let default = compiler_version_default () in 
   let doc = "Specifies the ocaml compiler version, defaults to " ^
-            compiler_version_default in
-  Arg.(value & opt string compiler_version_default & info ["c";"comp"] ~doc
+            default in
+  Arg.(value & opt string default & info ["c";"comp"] ~doc
          ~docv:"COMPILER_VERSION")
 
 let list_profiles_flag =
