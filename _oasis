@@ -12,6 +12,6 @@ Executable "ocaml-profiles"
   Build:              true
   Path:               bin
   MainIs:             ocaml_profiles.ml
-  BuildDepends:       extlib, fileutils, re, cmdliner, sequence, containers, gen, shell_support
+  BuildDepends:       fileutils, re, cmdliner, sequence, containers, gen, shell_support
 
 AlphaFeatures : ocamlbuild_more_args
