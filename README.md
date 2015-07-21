@@ -28,12 +28,43 @@ Any of the following will list all profiles on the default repository:
 
 ```
 ocaml-profiles -list 
-ocaml-profiles list 
+ocaml-profiles list
 ocaml-profiles -l
 ocaml-profiles
 ```
 
+## Showing an existing profile
+
+```
+ocaml-profiles show struktured
+
+Cloning into '.ocaml-profiles/struktured'...
+remote: Counting objects: 20, done.
+remote: Compressing objects: 100% (3/3), done.
+remote: Total 20 (delta 0), reused 0 (delta 0), pack-reused 17
+Unpacking objects: 100% (20/20), done.
+Checking connectivity... done.
+Profile "struktured":
+ profiles:
+        async
+        developer-extras
+        ocamlscript
+        shell-support
+        riakc_ppx
+        prob-cache
+ pins:
+
+ packages:
+        csv re extlib fileutils cmdliner calendar ocamlscript prob-cache csv riakc_ppx
+
+```
+
+
 ## Creating new profiles
 
+To create a new profile, simply clone any profile from ```profiles/*``` and modify as needed.
+
+Add any customized pins to ```pins```, any packages to install to ```packages``` and any profiles
+which should be invoked prior to this profile in ```profiles```. 
 
 
