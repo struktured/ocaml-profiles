@@ -28,6 +28,8 @@ let ssl_no_verify =
 let opam_default () = FilePath.concat (home()) ".opam"
 let pinned_file_name = "pinned"
 let package_file_name = "packages"
+let depext_file_name = "depext"
+
 let compiler_version_default () =
   try 
     Shell.run_exn "opam config var ocaml-version"
@@ -71,6 +73,18 @@ let packages profile =
                                               |> List.flatten |>
    CCList.filter_map (fun s -> match String.trim s with "" -> None | s -> Some s)
   with _ -> []
+
+let depext_config_file profile = FilePath.concat (profile_dir profile)
+    depexT_file_name
+
+let depexts profile =
+  try 
+    depext_config_file profile |>
+    Shell.lines_of_file |> List.map (fun s -> Re.split (Re_posix.compile_pat " ") s)
+                                              |> List.flatten |>
+   CCList.filter_map (fun s -> match String.trim s with "" -> None | s -> Some s)
+  with _ -> []
+
 
 let pinned_config_file_target opam_repo_target compiler_version
   = FilePath.concat opam_repo_target @@
@@ -229,6 +243,17 @@ let install_packages ?ssl_no_verify profile =
                              install_cmd ret) else
   `Ok "Done installing packages"
 
+let install_depexts ?ssl_no_verify profile =
+  let depexts = depexts profile in
+  match depexts with 
+  | [] -> `Ok ("No dependency extensions to install for " ^ profile) | _ ->
+  let install_cmd = ssl_no_verify_str ssl_no_verify ^ " opam depext " ^ (String.concat " " depexts) in
+  let ret = Sys.command install_cmd in
+  if ret != 0 then `Error (false, Printf.sprintf "%s: nonzero exit status: %d"
+                             install_cmd ret) else
+  `Ok "Done installing dependency extensions"
+
+
 module StringSet = CCSet.Make(String)
 
 let ok_or_fail ret = match ret with 
@@ -263,6 +288,7 @@ let rec _run added_profiles profile opam_repo_target profiles_url ssl_no_verify 
   ignore(ok_or_fail @@ checkout_profile ~ssl_no_verify profile profiles_url);
   let set = ok_or_fail @@ add_profiles added_profiles in
   ignore(ok_or_fail @@ add_pins profile);
+  ignore(ok_or_fail @@ install_depexts ~ssl_no_verify profile);
   ignore(ok_or_fail @@ install_packages ~ssl_no_verify profile);`Ok set
 
 
