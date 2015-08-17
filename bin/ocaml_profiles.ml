@@ -302,7 +302,9 @@ let show_profile ?(depth=0) ~follow_profiles ~ssl_no_verify profile profiles_url
   "\n pins:\n\t" ^
     (String.concat "\n\t" (pins profile |> List.map Pin_entry.to_string)) ^
   "\n packages:\n\t" ^
-    (String.concat " " (packages profile)) |>
+    (String.concat " " (packages profile)) ^
+  "\n depexts:\n\t" ^
+    (String.concat " " (depexts profile)) |>
   fun s -> print_endline s;`Ok (Operation.to_string (Operation.Show s))
 
 
