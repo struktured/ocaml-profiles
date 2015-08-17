@@ -75,7 +75,7 @@ let packages profile =
   with _ -> []
 
 let depext_config_file profile = FilePath.concat (profile_dir profile)
-    depexT_file_name
+    depext_file_name
 
 let depexts profile =
   try 
