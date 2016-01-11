@@ -1,6 +1,7 @@
 open Cmdliner
 open Shell_support
 open Shell
+let print s = print_endline @@ Printf.sprintf "[ocaml-profiles]: %s\n" s
 
 let profiles_default_url () =
   try
@@ -29,12 +30,11 @@ let opam_default () = FilePath.concat (home()) ".opam"
 let pinned_file_name = "pinned"
 let package_file_name = "packages"
 let depext_file_name = "depext"
-
 let compiler_version_default () =
   try 
     Shell.run_exn "opam config var ocaml-version"
     |> String.trim
-  with _ -> "4.02.2"
+  with _ -> "4.02.3"
 let ssl_no_verify_env = "GIT_SSL_NO_VERIFY"
 
 let ssl_no_verify_str = function
@@ -44,19 +44,19 @@ let ssl_no_verify_str = function
 let profiles_dir = ".ocaml-profiles"
 let profiles_file_name = "profiles"
 
-let profile_dir profile = FilePath.concat profiles_dir profile
+let profile_dir profile = 
+  if FileUtil.test FileUtil.Is_dir profile then
+    profile 
+  else
+    FilePath.concat profiles_dir profile
 
-let pinned_config_file profile = FilePath.concat (profile_dir profile)
-    pinned_file_name
+let pinned_config_file profile = 
+    FilePath.concat 
+        (profile_dir profile)
+        pinned_file_name
 
 let profiles_config_file profile = FilePath.concat (profile_dir profile)
     profiles_file_name
-
-let pins profile =
-  try
-   pinned_config_file profile |> Shell.lines_of_file
-  with _ -> []
-
 let profiles profile =
   try
     profiles_config_file profile |>
@@ -78,7 +78,7 @@ let depext_config_file profile = FilePath.concat (profile_dir profile)
     depext_file_name
 
 let depexts profile =
-  try 
+  try
     depext_config_file profile |>
     Shell.lines_of_file |> List.map (fun s -> Re.split (Re_posix.compile_pat " ") s)
                                               |> List.flatten |>
@@ -111,7 +111,7 @@ end
 let _pins profile =
   let open Pin_entry in
   pinned_config_file profile |>
-  Shell.lines_of_file|>
+  Shell.lines_of_file |>
   List.map String.trim |>
   List.filter (fun s -> String.length s > 0) |>
   List.map (fun s -> Re.split (Re_posix.compile_pat " ") s) |>
@@ -120,7 +120,15 @@ let _pins profile =
                l -> failwith("unxpected number of columns for line: " ^
                                  String.concat " " l))
 
-let pins p = try _pins p with _ -> []
+let pins profile =
+  try
+    print @@ "pins: for profile " ^ profile;
+    _pins profile
+(*    pinned_config_file profile |> Shell.lines_of_file *)
+  with e ->
+    print ("pins: error: " ^ (Printexc.to_string e)); 
+    []
+
 
 let read_all (dir:string) = 
   let dir = Unix.opendir dir in
@@ -175,11 +183,14 @@ let list_profiles_flag =
 
 open Shell.Infix
 
-let print s = print_endline @@ Printf.sprintf "[ocaml-profiles]: %s\n" s
-
 let profiles_branch_prefix = "profiles"
 
 let checkout_profile ~ssl_no_verify profile url =
+  if FileUtil.test FileUtil.Is_dir profile then begin
+    print @@ "checkout_profile: Profile " ^ profile ^ " is a local directory";
+    `Ok profile 
+  end
+  else
   let profile_dir = profile_dir profile in
   let ssl_no_verify = match ssl_no_verify with
   | true -> Some true
@@ -189,6 +200,7 @@ let checkout_profile ~ssl_no_verify profile url =
     ~single_branch:true ~target:profile_dir ~branch_or_tag:qualified_profile url
 
 let add_pins profile =
+  print @@ "add_pins: " ^ profile;
   let open Pin_entry in
   let pins = pins profile in
   let remove_pin {name;kind;target} =
@@ -237,7 +249,7 @@ let install_packages ?ssl_no_verify profile =
   let packages = packages profile in
   match packages with 
   | [] -> `Ok ("No packages to install for " ^ profile) | _ ->
-  let install_cmd = ssl_no_verify_str ssl_no_verify ^ " opam reinstall -y " ^ (String.concat " " packages) in
+  let install_cmd = ssl_no_verify_str ssl_no_verify ^ " opam install -y " ^ (String.concat " " packages) in
   let ret = Sys.command install_cmd in
   if ret != 0 then `Error (false, Printf.sprintf "%s: nonzero exit status: %d"
                              install_cmd ret) else
