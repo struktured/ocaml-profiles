@@ -78,7 +78,7 @@ let depext_config_file profile = FilePath.concat (profile_dir profile)
     depext_file_name
 
 let depexts profile =
-  try 
+  try
     depext_config_file profile |>
     Shell.lines_of_file |> List.map (fun s -> Re.split (Re_posix.compile_pat " ") s)
                                               |> List.flatten |>
@@ -237,7 +237,7 @@ let install_packages ?ssl_no_verify profile =
   let packages = packages profile in
   match packages with 
   | [] -> `Ok ("No packages to install for " ^ profile) | _ ->
-  let install_cmd = ssl_no_verify_str ssl_no_verify ^ " opam reinstall -y " ^ (String.concat " " packages) in
+  let install_cmd = ssl_no_verify_str ssl_no_verify ^ " opam install -y " ^ (String.concat " " packages) in
   let ret = Sys.command install_cmd in
   if ret != 0 then `Error (false, Printf.sprintf "%s: nonzero exit status: %d"
                              install_cmd ret) else
