@@ -1,7 +1,10 @@
 open Cmdliner
 open Shell_support
 open Shell
-let print s = print_endline @@ Printf.sprintf "[ocaml-profiles]: %s\n" s
+
+let debug = false
+
+let print s = if debug then print_endline @@ Printf.sprintf "[ocaml-profiles]: %s\n" s
 
 let profiles_default_url () =
   try
@@ -122,12 +125,10 @@ let _pins profile =
 
 let pins profile =
   try
-    print @@ "pins: for profile " ^ profile;
+    print @@ "getting pins for profile " ^ profile;
     _pins profile
 (*    pinned_config_file profile |> Shell.lines_of_file *)
-  with e ->
-    print ("pins: error: " ^ (Printexc.to_string e)); 
-    []
+  with Sys_error e -> []
 
 
 let read_all (dir:string) = 
@@ -245,9 +246,20 @@ let opam_switch ?ssl_no_verify profile compiler_version =
   let eval_cmd = "eval `opam config env`" in
   Shell.system eval_cmd
 
+let remove_packages ?ssl_no_verify ?(force=true) profile =
+  let packages = packages profile in
+  match packages with
+  | [] -> `Ok ("No packages to install for " ^ profile) | _ ->
+  let install_cmd = ssl_no_verify_str ssl_no_verify ^ " opam remove -y " ^ (String.concat " " packages) in
+  let ret = Sys.command install_cmd in
+  if ret != 0 then `Error (false, Printf.sprintf "%s: nonzero exit status: %d"
+                             install_cmd ret) else
+  `Ok "Done installing packages"
+
+
 let install_packages ?ssl_no_verify profile =
   let packages = packages profile in
-  match packages with 
+  match packages with
   | [] -> `Ok ("No packages to install for " ^ profile) | _ ->
   let install_cmd = ssl_no_verify_str ssl_no_verify ^ " opam install -y " ^ (String.concat " " packages) in
   let ret = Sys.command install_cmd in
@@ -257,7 +269,7 @@ let install_packages ?ssl_no_verify profile =
 
 let install_depexts ?ssl_no_verify profile =
   let depexts = depexts profile in
-  match depexts with 
+  match depexts with
   | [] -> `Ok ("No dependency extensions to install for " ^ profile) | _ ->
   let install_cmd = ssl_no_verify_str ssl_no_verify ^ " opam depext " ^ (String.concat " " depexts) in
   let ret = Sys.command install_cmd in
