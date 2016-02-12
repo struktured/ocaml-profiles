@@ -1,4 +1,7 @@
 PKG csv csv re cmdliner fileutils ocamlscript containers shell_support
 PKG ppx_deriving
+PKG opam-lib
+B _build/**
 SRC lib/**
 SRC bin/**
+

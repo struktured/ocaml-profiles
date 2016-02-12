@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: b1f00b0b068bd4b22ebba6f48423ef3a)
+# DO NOT EDIT (digest: dc8e56a34efce70d038f1324392cd795)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -14,19 +14,36 @@ true: annot, bin_annot
 ".git": not_hygienic
 "_darcs": -traverse
 "_darcs": not_hygienic
+# Library ocaml-profiles-client
+"lib/ocaml-profiles-client.cmxs": use_ocaml-profiles-client
+"lib/ocaml_profiles_constants.cmx": for-pack(Ocaml-profiles-client)
+"lib/arguments.cmx": for-pack(Ocaml-profiles-client)
+"lib/client.cmx": for-pack(Ocaml-profiles-client)
+<lib/*.ml{,i,y}>: pkg_cmdliner
+<lib/*.ml{,i,y}>: pkg_containers
+<lib/*.ml{,i,y}>: pkg_fileutils
+<lib/*.ml{,i,y}>: pkg_gen
+<lib/*.ml{,i,y}>: pkg_opam-lib
+<lib/*.ml{,i,y}>: pkg_re
+<lib/*.ml{,i,y}>: pkg_sequence
+<lib/*.ml{,i,y}>: pkg_shell_support
 # Executable ocaml-profiles
 "bin/ocaml_profiles.byte": pkg_cmdliner
 "bin/ocaml_profiles.byte": pkg_containers
 "bin/ocaml_profiles.byte": pkg_fileutils
 "bin/ocaml_profiles.byte": pkg_gen
+"bin/ocaml_profiles.byte": pkg_opam-lib
 "bin/ocaml_profiles.byte": pkg_re
 "bin/ocaml_profiles.byte": pkg_sequence
 "bin/ocaml_profiles.byte": pkg_shell_support
+"bin/ocaml_profiles.byte": use_ocaml-profiles-client
 <bin/*.ml{,i,y}>: pkg_cmdliner
 <bin/*.ml{,i,y}>: pkg_containers
 <bin/*.ml{,i,y}>: pkg_fileutils
 <bin/*.ml{,i,y}>: pkg_gen
+<bin/*.ml{,i,y}>: pkg_opam-lib
 <bin/*.ml{,i,y}>: pkg_re
 <bin/*.ml{,i,y}>: pkg_sequence
 <bin/*.ml{,i,y}>: pkg_shell_support
+<bin/*.ml{,i,y}>: use_ocaml-profiles-client
 # OASIS_STOP
