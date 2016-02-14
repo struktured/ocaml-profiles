@@ -13,8 +13,8 @@ Library "ocaml-profiles-client"
   Build:              true
   Pack:               true
   Path:               lib
-  Modules:	      Ocaml_profiles_constants, Arguments, Client
-  BuildDepends:       opam-lib, fileutils, re, cmdliner, sequence, containers, gen, shell_support
+  Modules:	      Ocaml_profiles_constants, Debug, Arguments, Pins, Packages, Profiles, Client
+  BuildDepends:       opam-lib, opam-lib.client, fileutils, re, cmdliner, sequence, containers, gen, shell_support
 
 
 Executable "ocaml-profiles"
