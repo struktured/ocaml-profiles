@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 8c9c8b513aed99fd5cdd7f3bf73c322c)
+# DO NOT EDIT (digest: 6f168d6968853bc569b5bc79dfc7adeb)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -18,6 +18,9 @@ true: annot, bin_annot
 "lib/ocaml-profiles-client.cmxs": use_ocaml-profiles-client
 "lib/ocaml_profiles_constants.cmx": for-pack(Ocaml-profiles-client)
 "lib/debug.cmx": for-pack(Ocaml-profiles-client)
+"lib/errors.cmx": for-pack(Ocaml-profiles-client)
+"lib/opam_config.cmx": for-pack(Ocaml-profiles-client)
+"lib/env_options.cmx": for-pack(Ocaml-profiles-client)
 "lib/arguments.cmx": for-pack(Ocaml-profiles-client)
 "lib/pins.cmx": for-pack(Ocaml-profiles-client)
 "lib/packages.cmx": for-pack(Ocaml-profiles-client)
