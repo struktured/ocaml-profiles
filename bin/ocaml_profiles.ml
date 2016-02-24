@@ -1,1 +1,1 @@
-open Client
+Client.run ()

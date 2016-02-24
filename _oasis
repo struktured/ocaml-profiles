@@ -13,7 +13,7 @@ Library "ocaml-profiles-client"
   Build:              true
   Pack:               true
   Path:               lib
-  Modules:	      Ocaml_profiles_constants, Debug, Errors, Opam_config, Env_options, Arguments, Pins, Packages, Profiles, Depexts, Client
+  Modules:	      Ocaml_profiles_constants, Debug, Errors, Opam_config, Env_options, Arguments, Profiles, Packages, Pins, Depexts, Client
   BuildDepends:       opam-lib, opam-lib.client, fileutils, re, cmdliner, sequence, containers, gen, shell_support
 
 

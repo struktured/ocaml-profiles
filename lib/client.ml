@@ -88,6 +88,6 @@ let safe_cmd =
     Profiles.clean_profiles_dir()
   with e -> ignore(Profiles.clean_profiles_dir()); raise e
 
-let () =
+let run () =
   ignore(Profiles.clean_profiles_dir());
   match safe_cmd with `Error _ -> exit 1 | _ -> exit 0
