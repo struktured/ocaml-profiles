@@ -7,11 +7,11 @@ let ssl_no_verify_var = function
   | Some b -> Some Var.{name=ssl_no_verify_env_name; value=string_of_bool b}
 
 let putenv var = Unix.putenv var.Var.name var.Var.value
-let getenv var = Unix.getenv var.Var.name
+let getenv var = try Some (Unix.getenv var.Var.name) with _ -> None
 
 let with_envs envs (f:unit->'a) = 
-  let prev_envs = List.map 
-    (fun var -> Var.{var with value=getenv var}) envs in
+  let prev_envs = CCList.filter_map
+    (fun var -> getenv var |> CCOpt.map (fun value -> Var.{var with value})) envs in
   List.iter putenv envs;
   try 
     let ret = f () in
