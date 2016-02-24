@@ -1,6 +1,7 @@
 module O = OpamClient.SafeAPI
 open Arguments
 open Cmdliner
+open Errors
 let default_opam_root = FilePath.concat (Unix.getenv "HOME") ".opam"
 let default_profiles_url = "https://github.com/struktured/ocaml-profiles.git"
 
@@ -37,8 +38,8 @@ let rec _run added_profiles profile opam_repo_target profiles_url ssl_no_verify 
   ignore(ok_or_fail @@ Profiles.checkout_profile ~ssl_no_verify profile profiles_url);
   let set = ok_or_fail @@ add_profiles added_profiles in
   ignore(ok_or_fail @@ Pins.apply profile);
-  ignore(ok_or_fail @@ install_depexts ~ssl_no_verify profile);
-  ignore(ok_or_fail @@ install_packages ~ssl_no_verify profile);`Ok set
+  ignore(ok_or_fail @@ Depexts.apply ~ssl_no_verify profile);
+  ignore(ok_or_fail @@ Packages.install ~ssl_no_verify profile);`Ok set
 
 
 let show_profile ?(depth=0) ~follow_profiles ~ssl_no_verify profile profiles_url = 
@@ -47,13 +48,13 @@ let show_profile ?(depth=0) ~follow_profiles ~ssl_no_verify profile profiles_url
   let open Printf in
   sprintf "Profile \"%s\":\n" profile ^
   " profiles:\n\t" ^
-    (String.concat "\n\t" (Profiles.profiles profile)) ^
+    (String.concat "\n\t" (Profiles.for_profile profile)) ^
   "\n pins:\n\t" ^
-    (String.concat "\n\t" (Pins.pins profile |> List.map Pins.Pin_entry.to_string)) ^
+    (String.concat "\n\t" (Pins.for_profile profile |> List.map Pins.Pin_entry.to_string)) ^
   "\n packages:\n\t" ^
-    (String.concat " " (packages profile)) ^
+    (String.concat " " (Packages.for_profile profile)) ^
   "\n depexts:\n\t" ^
-    (String.concat " " (depexts profile)) |>
+    (String.concat " " (Depexts.for_profile profile)) |>
   fun s -> print_endline s;`Ok (Operation.to_string (Operation.Show s))
 
 

@@ -33,7 +33,7 @@ let pinned_config_file_target opam_repo_target compiler_version
     FilePath.concat compiler_version pinned_file_name
 
 
-let _pins profile =
+let for_profile profile =
   let open Pin_entry in
   pinned_config_file profile |>
   Shell.lines_of_file |>
@@ -48,7 +48,7 @@ let _pins profile =
 let pins profile =
   try
     print @@ "getting pins for profile " ^ profile;
-    _pins profile
+    for_profile profile
 (*    pinned_config_file profile |> Shell.lines_of_file *)
   with Sys_error e -> []
 

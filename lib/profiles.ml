@@ -34,14 +34,14 @@ let checkout_profile ~ssl_no_verify profile url =
 let profiles_config_file profile = FilePath.concat (profile_dir profile)
     profiles_file_name
 
-let profiles profile =
+let for_profile profile =
   try
     profiles_config_file profile |>
     Shell.lines_of_file
   with _ -> []
 
 let load_profiles profile url  =
-  let profiles = profiles profile in
+  let profiles = for_profile profile in
   let splitter = Re_posix.compile_pat " " |> fun re -> Re.split re in
   CCList.map splitter profiles |> CCList.filter_map
   (function 

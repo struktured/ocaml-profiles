@@ -21,4 +21,13 @@ remove: [
   ["rm" "-f" "%{bin}%/ocaml-profiles"]
 ]
 
-depends: [ "opam-lib" "oasis" {build} "extlib" "fileutils" "re" "containers" "sequence" "gen" "cmdliner" "shell-support" ]
+depends: [ "opam-lib" {>= "1.2.2" } 
+  "oasis" {build} 
+  "extlib" 
+  "fileutils" 
+  "re" 
+  "containers" 
+  "sequence" 
+  "gen" 
+  "cmdliner" 
+  "shell-support" ]

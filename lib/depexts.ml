@@ -3,7 +3,7 @@ open Shell_support
 let depext_config_file profile = FilePath.concat (Profiles.profile_dir profile)
     depext_file_name
 
-let depexts profile =
+let for_profile profile =
   try
     depext_config_file profile |>
     Shell.lines_of_file |> List.map (fun s -> Re.split (Re_posix.compile_pat " ") s)
@@ -12,7 +12,7 @@ let depexts profile =
   with _ -> []
 
 let apply ?ssl_no_verify profile =
-  let depexts = depexts profile in
+  let depexts = for_profile profile in
   match depexts with
   | [] -> `Ok ("No dependency extensions to install for " ^ profile) | _ ->
   let f () =
