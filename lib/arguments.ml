@@ -85,7 +85,7 @@ let opam_switch ?ssl_no_verify profile compiler_version =
       ~compiler:(OpamCompiler.of_string compiler_version)
       ~warning:true
       ~quiet:false
-      OpamSwitch.default;
+      (OpamSwitch.of_string compiler_version);
     let eval_cmd = "eval `opam config env`" in Shell.system eval_cmd
   end in
   Env_options.with_env_opts ?ssl_no_verify f

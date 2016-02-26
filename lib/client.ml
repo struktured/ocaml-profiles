@@ -7,12 +7,14 @@ let default_profiles_url = "https://github.com/struktured/ocaml-profiles.git"
 
 type t = {opam_root:string; profiles_url : string} [@@deriving show]
 
-let with_opam_root ?(opam_root=default_opam_root) ?(profiles_url=default_profiles_url) () f : t =
+let with_opam_root ?(opam_root=default_opam_root) ?(profiles_url=default_profiles_url) f =
   let previous_root = !OpamGlobals.root_dir in
-  OpamGlobals.root_dir := opam_root; 
-  let ret = f {opam_root;profiles_url} in
-  OpamGlobals.root_dir := previous_root;
-  ret
+  begin
+    OpamGlobals.root_dir := opam_root;
+    let ret = f {opam_root;profiles_url} in
+    OpamGlobals.root_dir := previous_root;
+    ret
+  end
 
 let rec _run added_profiles profile opam_repo_target profiles_url ssl_no_verify =
  let add_profiles added_profiles =
@@ -67,27 +69,32 @@ let run operation profile opam_repo_target compiler_version profiles_url ssl_no_
     begin 
       match Profiles.list_profiles profiles_url with `Ok o -> `Ok op_to_string | `Error _ as e -> e 
     end
-  | Operation.Apply profile ->
+  | Operation.Apply profile -> with_opam_root (fun _ ->
     begin
       ignore(ok_or_fail @@ opam_switch ~ssl_no_verify profile compiler_version);
       ignore(ok_or_fail(_run StringSet.empty profile opam_repo_target profiles_url ssl_no_verify));
       `Ok op_to_string
-    end
+    end)
   | Operation.Show profile ->
     show_profile ~follow_profiles ~ssl_no_verify profile profiles_url
 
-let cmd =
+let cmd () =
   let doc = "Apply an ocaml profile to a target opam repository" in
   Term.(ret (pure run $ operation $ profile $ opam_repo_target $ compiler_version $ profiles_repo_url $ 
       ssl_no_verify $ list_profiles_flag $ follow_profiles)),
   Term.info "ocaml-profiles" ~version:"1.0" ~doc
 
-let safe_cmd =
+let safe_cmd () =
   try
-    ignore(Term.eval cmd);
-    Profiles.clean_profiles_dir()
-  with e -> ignore(Profiles.clean_profiles_dir()); raise e
+    ignore(Term.eval @@ cmd ());
+    Profiles.clean_profiles_dir ()
+  with e -> ignore(Profiles.clean_profiles_dir ()); raise e
 
-let run () =
-  ignore(Profiles.clean_profiles_dir());
-  match safe_cmd with `Error _ -> exit 1 | _ -> exit 0
+let run ?opam_root ?profiles_url () =
+  ignore(Profiles.clean_profiles_dir ());
+  let f = safe_cmd () |> function
+    | `Error _ -> exit 1 
+    | _ -> exit 0 in
+  with_opam_root ?opam_root ?profiles_url f
+  
+ 

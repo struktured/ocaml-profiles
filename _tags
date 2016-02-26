@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 30130fddff0bc70527326298e69d359b)
+# DO NOT EDIT (digest: 880ad79d6f402f8c50244265a6dd29b6)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -14,19 +14,19 @@ true: annot, bin_annot
 ".git": not_hygienic
 "_darcs": -traverse
 "_darcs": not_hygienic
-# Library ocaml-profiles-client
-"lib/ocaml-profiles-client.cmxs": use_ocaml-profiles-client
-"lib/ocaml_profiles_constants.cmx": for-pack(Ocaml-profiles-client)
-"lib/debug.cmx": for-pack(Ocaml-profiles-client)
-"lib/errors.cmx": for-pack(Ocaml-profiles-client)
-"lib/opam_config.cmx": for-pack(Ocaml-profiles-client)
-"lib/env_options.cmx": for-pack(Ocaml-profiles-client)
-"lib/arguments.cmx": for-pack(Ocaml-profiles-client)
-"lib/profiles.cmx": for-pack(Ocaml-profiles-client)
-"lib/packages.cmx": for-pack(Ocaml-profiles-client)
-"lib/pins.cmx": for-pack(Ocaml-profiles-client)
-"lib/depexts.cmx": for-pack(Ocaml-profiles-client)
-"lib/client.cmx": for-pack(Ocaml-profiles-client)
+# Library ocaml_profiles_client
+"lib/ocaml_profiles_client.cmxs": use_ocaml_profiles_client
+"lib/ocaml_profiles_constants.cmx": for-pack(Ocaml_profiles_client)
+"lib/debug.cmx": for-pack(Ocaml_profiles_client)
+"lib/errors.cmx": for-pack(Ocaml_profiles_client)
+"lib/opam_config.cmx": for-pack(Ocaml_profiles_client)
+"lib/env_options.cmx": for-pack(Ocaml_profiles_client)
+"lib/arguments.cmx": for-pack(Ocaml_profiles_client)
+"lib/profiles.cmx": for-pack(Ocaml_profiles_client)
+"lib/packages.cmx": for-pack(Ocaml_profiles_client)
+"lib/pins.cmx": for-pack(Ocaml_profiles_client)
+"lib/depexts.cmx": for-pack(Ocaml_profiles_client)
+"lib/client.cmx": for-pack(Ocaml_profiles_client)
 <lib/*.ml{,i,y}>: pkg_cmdliner
 <lib/*.ml{,i,y}>: pkg_containers
 <lib/*.ml{,i,y}>: pkg_fileutils
@@ -46,7 +46,7 @@ true: annot, bin_annot
 "bin/ocaml_profiles.byte": pkg_re
 "bin/ocaml_profiles.byte": pkg_sequence
 "bin/ocaml_profiles.byte": pkg_shell_support
-"bin/ocaml_profiles.byte": use_ocaml-profiles-client
+"bin/ocaml_profiles.byte": use_ocaml_profiles_client
 <bin/*.ml{,i,y}>: pkg_cmdliner
 <bin/*.ml{,i,y}>: pkg_containers
 <bin/*.ml{,i,y}>: pkg_fileutils
@@ -56,5 +56,5 @@ true: annot, bin_annot
 <bin/*.ml{,i,y}>: pkg_re
 <bin/*.ml{,i,y}>: pkg_sequence
 <bin/*.ml{,i,y}>: pkg_shell_support
-<bin/*.ml{,i,y}>: use_ocaml-profiles-client
+<bin/*.ml{,i,y}>: use_ocaml_profiles_client
 # OASIS_STOP
