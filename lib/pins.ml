@@ -1,6 +1,7 @@
 module PIN = OpamClient.SafeAPI.PIN
 module Shell = Shell_support.Shell
 open Ocaml_profiles_constants
+module List = CCList 
 let print = Debug.print
 module Kind = struct
   type t = OpamTypes.pin_kind
@@ -65,10 +66,10 @@ let add_pin = let open Pin_entry in
        | `http -> OpamTypes.Http (target, None)
        | `version -> OpamTypes.Version (OpamPackage.Version.of_string target) in
       try
-        PIN.pin package_name ~edit:true ~action:true ?version 
+        PIN.pin package_name ~edit:false ~action:true ?version 
           (Some pin_option);
         `Ok (name ^ " " ^ "pinned")
-      with e -> `Error (false, Printexc.to_string e)
+      with e -> `Error (false, Printexc.to_string e) 
 
 let remove_pins pins =
   let open Pin_entry in
@@ -87,8 +88,7 @@ let apply profile =
   let pins = pins profile in
   let open Shell_support.Shell.Infix in
   remove_pins pins >>= fun ok -> print ok;
-  CCList.fold_while (fun res pin ->
-      match res with 
+  List.fold_while (fun res pin ->
+      match res with
        | `Error _ as e -> e, `Stop
        | `Ok _ -> (add_pin pin), `Continue) (`Ok "apply_pins: start") pins
-

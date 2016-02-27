@@ -2,25 +2,39 @@ module O = OpamClient.SafeAPI
 open Arguments
 open Cmdliner
 open Errors
-let default_opam_root = FilePath.concat (Unix.getenv "HOME") ".opam"
+module List = CCList
+let default_opam_root = try
+  FilePath.concat (Unix.getenv "HOME") ".opam"
+  with _ -> "~/.opam"
+
 let default_profiles_url = "https://github.com/struktured/ocaml-profiles.git"
+
+let default_opam_yes = try 
+  bool_of_string (Unix.getenv "OPAMYES")
+  with _ -> true
 
 type t = {opam_root:string; profiles_url : string} [@@deriving show]
 
-let with_opam_root ?(opam_root=default_opam_root) ?(profiles_url=default_profiles_url) f =
+let with_opam_root 
+  ?(opam_root=default_opam_root) 
+  ?(profiles_url=default_profiles_url) 
+  ?(opam_yes=default_opam_yes)
+  f =
   let previous_root = !OpamGlobals.root_dir in
+  let previous_yes = !OpamGlobals.yes in
   begin
+    OpamGlobals.yes := opam_yes;
     OpamGlobals.root_dir := opam_root;
     let ret = f {opam_root;profiles_url} in
+    OpamGlobals.yes := previous_yes;
     OpamGlobals.root_dir := previous_root;
     ret
   end
 
 let rec _run added_profiles profile opam_repo_target profiles_url ssl_no_verify =
- let add_profiles added_profiles =
-  let open Profiles in
+  let add_profiles added_profiles = let open Profiles in
   let profiles = Profiles.load_profiles profile profiles_url in
-  CCList.fold_while 
+  List.fold_while 
     (fun r profile -> match r with
     | `Ok set -> begin
       match StringSet.exists ((=) profile.name) set with
@@ -42,7 +56,6 @@ let rec _run added_profiles profile opam_repo_target profiles_url ssl_no_verify 
   ignore(ok_or_fail @@ Pins.apply profile);
   ignore(ok_or_fail @@ Depexts.apply ~ssl_no_verify profile);
   ignore(ok_or_fail @@ Packages.install ~ssl_no_verify profile);`Ok set
-
 
 let show_profile ?(depth=0) ~follow_profiles ~ssl_no_verify profile profiles_url = 
   ignore(ok_or_fail(Profiles.checkout_profile ~ssl_no_verify profile profiles_url));
@@ -69,12 +82,12 @@ let run operation profile opam_repo_target compiler_version profiles_url ssl_no_
     begin 
       match Profiles.list_profiles profiles_url with `Ok o -> `Ok op_to_string | `Error _ as e -> e 
     end
-  | Operation.Apply profile -> with_opam_root (fun _ ->
+  | Operation.Apply profile -> Env_options.with_env_opts ~ssl_no_verify (fun () -> with_opam_root (fun _ ->
     begin
       ignore(ok_or_fail @@ opam_switch ~ssl_no_verify profile compiler_version);
       ignore(ok_or_fail(_run StringSet.empty profile opam_repo_target profiles_url ssl_no_verify));
       `Ok op_to_string
-    end)
+    end))
   | Operation.Show profile ->
     show_profile ~follow_profiles ~ssl_no_verify profile profiles_url
 
