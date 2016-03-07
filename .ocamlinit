@@ -1,0 +1,2 @@
+#require "ocaml_profiles_client";;
+print_endline "Loaded ocaml profiles client modules"

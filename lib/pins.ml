@@ -66,7 +66,7 @@ let add_pin = let open Pin_entry in
        | `http -> OpamTypes.Http (target, None)
        | `version -> OpamTypes.Version (OpamPackage.Version.of_string target) in
       try
-        PIN.pin package_name ~edit:false ~action:true ?version 
+        PIN.pin package_name ~edit:true ~action:true ?version
           (Some pin_option);
         `Ok (name ^ " " ^ "pinned")
       with e -> `Error (false, Printexc.to_string e) 
