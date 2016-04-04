@@ -1,0 +1,13 @@
+# OASIS_START
+# DO NOT EDIT (digest: bb95d200b9751d485a5d45950b658b4b)
+version = "0.1"
+description = "Ocaml Profling Tool"
+requires =
+"opam-lib opam-lib.client fileutils re cmdliner sequence containers gen shell_support"
+archive(byte) = "ocaml_profiles_client.cma"
+archive(byte, plugin) = "ocaml_profiles_client.cma"
+archive(native) = "ocaml_profiles_client.cmxa"
+archive(native, plugin) = "ocaml_profiles_client.cmxs"
+exists_if = "ocaml_profiles_client.cma"
+# OASIS_STOP
+
