@@ -14,17 +14,19 @@ let for_profile profile =
    CCList.filter_map (fun s -> match String.trim s with "" -> None | s -> Some s)
   with _ -> []
 
-let remove ?ssl_no_verify ?(force=true) profile =
+let remove ?(force=true) packages =
+begin
+  let atoms : OpamTypes.atom list = List.map 
+  (fun p -> (OpamPackage.Name.of_string p, None)) packages in
+  O.remove ~autoremove:false ~force atoms;
+  `Ok (Printf.sprintf "remove: %s" (String.concat ", " packages))
+end
+
+let remove_for_profile ?ssl_no_verify ?(force=true) profile =
   let packages = for_profile profile in
   match packages with
-  | [] -> `Ok ("No packages to install for " ^ profile) | _ ->
-  let remove () =
-    begin
-    let atoms : OpamTypes.atom list = List.map 
-      (fun p -> (OpamPackage.Name.of_string p, None)) packages in
-    O.remove ~autoremove:false ~force:true atoms;
-    `Ok ("remove: " ^ (String.concat ", " packages))
-    end in
+  | [] -> `Ok (Printf.sprintf "No packages to install for %s" profile) | _ ->
+  let remove () = remove ~force packages in
   Env_options.with_env_opts ?ssl_no_verify remove
 
 let install ?ssl_no_verify profile =
@@ -36,7 +38,7 @@ let install ?ssl_no_verify profile =
     let atoms : OpamTypes.atom list = List.map 
       (fun p -> (OpamPackage.Name.of_string p, None)) packages in
     O.install atoms None false;
-    `Ok ("install: " ^ (String.concat ", " packages))
+    `Ok (Printf.sprintf "install: %s" (String.concat ", " packages))
     end in
   Env_options.with_env_opts ?ssl_no_verify install
 

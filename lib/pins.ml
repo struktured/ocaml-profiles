@@ -3,6 +3,7 @@ module Shell = Shell_support.Shell
 open Ocaml_profiles_constants
 module List = CCList
 let print = Debug.print
+
 module Kind = struct
   type t = OpamTypes.pin_kind
   let to_string = function `git -> "git" | `hg -> "hg"
@@ -23,7 +24,11 @@ module Pin_entry = struct
   type t = {name:string;kind:Kind.t; target:string}
   let to_string t = Printf.sprintf "%s %s %s" t.name
     (Kind.to_string t.kind) t.target
+  let should_reinstall t = match t.kind with
+    | `git | `hg | `darcs |`local | `http -> true
+    | `version -> false
 end
+
 let pinned_config_file profile =
     FilePath.concat
         (Profiles.profile_dir profile)
@@ -45,16 +50,13 @@ let for_profile profile =
                l -> failwith("unxpected number of columns for line: " ^
                                  String.concat " " l))
 
-let pins profile =
-  try
+let pins = Errors.if_sys_error ~then_default:[]
+  ~f:(fun profile ->
     print @@ Printf.sprintf "getting pins for profile %s " profile;
-    for_profile profile
-(*    pinned_config_file profile |> Shell.lines_of_file *)
-  with Sys_error e -> []
-
+    for_profile profile)
 
 let add_pin = let open Pin_entry in
-  function {name;kind;target} ->
+  function {name;kind;target} as entry ->
       let package_name = OpamPackage.Name.of_string name in
       let version = None in
       let pin_option = match kind with
@@ -67,7 +69,7 @@ let add_pin = let open Pin_entry in
       try
         PIN.pin package_name ~edit:false ~action:true ?version
           (Some pin_option);
-        `Ok (name ^ " " ^ "pinned")
+        `Ok entry (*(Printf.sprintf "%s pinned" name) *)
       with e -> `Error (false, Printexc.to_string e)
 
 let remove_pins pins =
@@ -78,11 +80,12 @@ let remove_pins pins =
     (fun name -> OpamPackage.Name.of_string name) package_names_as_str in
   try
     PIN.unpin ~action:true package_names;
-    `Ok ("[" ^ (String.concat ", " package_names_as_str) ^ "] pins removed")
+    `Ok (Printf.sprintf "[%s] pins removed"
+      (String.concat ", " package_names_as_str))
   with e -> `Error (false, Printexc.to_string e)
 
 let apply profile =
-  print @@ "add_pins: " ^ profile;
+  print @@ Printf.sprintf "add_pins: %s" profile;
   let open Pin_entry in
   let pins = pins profile in
   let open Shell_support.Shell.Infix in
@@ -90,4 +93,9 @@ let apply profile =
   List.fold_while (fun res pin ->
       match res with
        | `Error _ as e -> e, `Stop
-       | `Ok _ -> (add_pin pin), `Continue) (`Ok "apply_pins: start") pins
+       | `Ok l ->
+           begin
+             match (add_pin pin) with 
+          | `Ok e -> `Ok (e::l), `Continue
+          | `Error _ as e ->  e, `Stop
+          end) (`Ok []) pins

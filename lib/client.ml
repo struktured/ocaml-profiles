@@ -53,8 +53,12 @@ let rec _run added_profiles profile opam_repo_target profiles_url ssl_no_verify 
     profile opam_repo_target;
   ignore(ok_or_fail @@ Profiles.checkout_profile ~ssl_no_verify profile profiles_url);
   let set = ok_or_fail @@ add_profiles added_profiles in
-  ignore(ok_or_fail @@ Pins.apply profile);
-  ignore(ok_or_fail @@ Depexts.apply ~ssl_no_verify profile);
+  let pin_entries = ok_or_fail @@ Pins.apply profile in
+  let should_reinstall = let open Pins.Pin_entry in function
+    | {name;_} as entry when should_reinstall entry -> Some name
+    | _ -> None in
+  let to_reinstall = CCList.filter_map should_reinstall pin_entries in
+  ignore(ok_or_fail @@ Packages.remove to_reinstall);
   ignore(ok_or_fail @@ Packages.install ~ssl_no_verify profile);`Ok set
 
 let show_profile ?(depth=0) ~follow_profiles ~ssl_no_verify profile profiles_url = 
