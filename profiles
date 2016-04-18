@@ -4,3 +4,4 @@ shell-support
 riakc_ppx
 prob-cache
 ocaml-profiles
+or_errors
