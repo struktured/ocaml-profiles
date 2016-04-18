@@ -3,3 +3,4 @@ ocamlscript
 shell-support
 riakc_ppx
 prob-cache
+ocaml-profiles
