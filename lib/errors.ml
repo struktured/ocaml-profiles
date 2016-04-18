@@ -11,3 +11,6 @@ let to_tuple = function
 
 let wrap_tuple f = wrap_exn f |> to_tuple
 
+let if_sys_error ~then_default ~f x =
+  try f x with Sys_error _ -> then_default
+

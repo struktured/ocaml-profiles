@@ -1,7 +1,7 @@
 module PIN = OpamClient.SafeAPI.PIN
 module Shell = Shell_support.Shell
 open Ocaml_profiles_constants
-module List = CCList 
+module List = CCList
 let print = Debug.print
 module Kind = struct
   type t = OpamTypes.pin_kind
@@ -21,11 +21,11 @@ end
 
 module Pin_entry = struct
   type t = {name:string;kind:Kind.t; target:string}
-  let to_string t = t.name ^ " " ^ 
-    Kind.to_string t.kind ^ " " ^ t.target
+  let to_string t = Printf.sprintf "%s %s %s" t.name
+    (Kind.to_string t.kind) t.target
 end
-let pinned_config_file profile = 
-    FilePath.concat 
+let pinned_config_file profile =
+    FilePath.concat
         (Profiles.profile_dir profile)
         pinned_file_name
 
@@ -33,11 +33,10 @@ let pinned_config_file_target opam_repo_target compiler_version
   = FilePath.concat opam_repo_target @@
     FilePath.concat compiler_version pinned_file_name
 
-
 let for_profile profile =
   let open Pin_entry in
   pinned_config_file profile |>
-  Shell.lines_of_file |>
+  Errors.if_sys_error ~then_default:[] ~f:Shell.lines_of_file |>
   List.map String.trim |>
   List.filter (fun s -> String.length s > 0) |>
   List.map (fun s -> Re.split (Re_posix.compile_pat " ") s) |>
@@ -48,7 +47,7 @@ let for_profile profile =
 
 let pins profile =
   try
-    print @@ "getting pins for profile " ^ profile;
+    print @@ Printf.sprintf "getting pins for profile %s " profile;
     for_profile profile
 (*    pinned_config_file profile |> Shell.lines_of_file *)
   with Sys_error e -> []
@@ -69,7 +68,7 @@ let add_pin = let open Pin_entry in
         PIN.pin package_name ~edit:false ~action:true ?version
           (Some pin_option);
         `Ok (name ^ " " ^ "pinned")
-      with e -> `Error (false, Printexc.to_string e) 
+      with e -> `Error (false, Printexc.to_string e)
 
 let remove_pins pins =
   let open Pin_entry in

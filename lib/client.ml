@@ -9,16 +9,16 @@ let default_opam_root = try
 
 let default_profiles_url = "https://github.com/struktured/ocaml-profiles.git"
 
-let default_opam_yes = try 
+let default_opam_yes = try
   bool_of_string (Unix.getenv "OPAMYES")
   with _ -> true
 
 type t = {opam_root:string; profiles_url : string} [@@deriving show]
 
-let with_opam_root 
-  ?(opam_root=default_opam_root) 
-  ?(profiles_url=default_profiles_url) 
-  ?(opam_yes=default_opam_yes)
+let with_opam_root
+  ?(opam_root=default_opam_root)
+  ?(profiles_url=default_profiles_url)
+  ?(opam_yes=default_opam_yes )
   f =
   let previous_root = !OpamGlobals.root_dir in
   let previous_yes = !OpamGlobals.yes in
@@ -34,7 +34,7 @@ let with_opam_root
 let rec _run added_profiles profile opam_repo_target profiles_url ssl_no_verify =
   let add_profiles added_profiles = let open Profiles in
   let profiles = Profiles.load_profiles profile profiles_url in
-  List.fold_while 
+  List.fold_while
     (fun r profile -> match r with
     | `Ok set -> begin
       match StringSet.exists ((=) profile.name) set with
@@ -48,7 +48,7 @@ let rec _run added_profiles profile opam_repo_target profiles_url ssl_no_verify 
       | e -> e, `Stop end end
     | e -> e, `Stop
       ) (`Ok added_profiles) profiles in
-  Debug.print @@ Printf.sprintf 
+  Debug.print @@ Printf.sprintf
     "Applying profile \"%s\" to opam repository \"%s\". \n"
     profile opam_repo_target;
   ignore(ok_or_fail @@ Profiles.checkout_profile ~ssl_no_verify profile profiles_url);
@@ -77,9 +77,9 @@ let run operation profile opam_repo_target compiler_version profiles_url ssl_no_
   list_profiles_flag follow_profiles =
   let op = Operation.of_string ~list_profiles_flag operation profile in
   let op_to_string = Operation.to_string op in
-  match op with 
+  match op with
   | Operation.List ->
-    begin 
+    begin
       match Profiles.list_profiles profiles_url with `Ok o -> `Ok op_to_string | `Error _ as e -> e 
     end
   | Operation.Apply profile -> Env_options.with_env_opts ~ssl_no_verify (fun () -> with_opam_root (fun _ ->
@@ -106,8 +106,6 @@ let safe_cmd () =
 let run ?opam_root ?profiles_url () =
   ignore(Profiles.clean_profiles_dir ());
   let f = safe_cmd () |> function
-    | `Error _ -> exit 1 
+    | `Error _ -> exit 1
     | _ -> exit 0 in
   with_opam_root ?opam_root ?profiles_url f
-  
- 
