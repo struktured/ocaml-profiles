@@ -35,7 +35,7 @@ let install ?ssl_no_verify profile =
   | [] -> `Ok ("No packages to install for " ^ profile) | _ ->
  let install () =
    begin
-    let atoms : OpamTypes.atom list = List.map 
+    let atoms : OpamTypes.atom list = List.map
       (fun p -> (OpamPackage.Name.of_string p, None)) packages in
     O.install atoms None false;
     `Ok (Printf.sprintf "install: %s" (String.concat ", " packages))

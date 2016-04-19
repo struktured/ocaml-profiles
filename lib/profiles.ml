@@ -13,7 +13,7 @@ let profiles_branch_prefix = "profiles"
 
 let profile_dir profile = 
   if FileUtil.test FileUtil.Is_dir profile then
-    profile 
+    profile
   else
     FilePath.concat profiles_dir profile
 
@@ -44,7 +44,7 @@ let load_profiles profile url  =
   let profiles = for_profile profile in
   let splitter = Re_posix.compile_pat " " |> fun re -> Re.split re in
   CCList.map splitter profiles |> CCList.filter_map
-  (function 
+  (function
     | [profile'] -> Some {name=profile'; url}
     | profile'::(url'::_) -> Some {name=profile';url=url'}
     | _ -> None) 
@@ -53,8 +53,8 @@ let list_profiles url =
    let open Git.Response.Remote_ref in
    Git.ls_remote url |> function |`Error _ as e -> e | `Ok r ->
      print_endline @@ "Available profiles in \"" ^ url ^ "\":";
-     CCList.filter_map (fun r -> match r.ref_type with 
-      | `Branch | `Tag -> 
+     CCList.filter_map (fun r -> match r.ref_type with
+      | `Branch | `Tag ->
           let value = match r.value with
           | s when CCString.find ~sub:"profiles/" s = 0 -> Some 
             (String.sub s (String.length "profiles/") (String.length s - String.length "profiles/"))
