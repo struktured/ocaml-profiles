@@ -1,6 +1,1 @@
-or_errors git https://github.com/struktured/or_errors
-or_errors_containers git https://github.com/struktured/or_errors_containers
-or_errors_lwt git https://github.com/struktured/or_errors_lwt
-or_errors_async git https://github.com/struktured/or_errors_async
-or_errors_rresult git https://github.com/struktured/or_errors_rresult
-or_errors_all git https://github.com/struktured/or_errors_all
+plplot git https://github.com/struktured/plplot#stable
