@@ -2,7 +2,6 @@ module O = OpamClient.SafeAPI
 open Arguments
 open Cmdliner
 open Errors
-module List = CCList
 let default_opam_root = try
   FilePath.concat (Unix.getenv "HOME") ".opam"
   with _ -> "~/.opam"
@@ -31,10 +30,11 @@ let with_opam_root
     ret
   end
 
+
 let rec _run added_profiles profile opam_repo_target profiles_url ssl_no_verify =
   let add_profiles added_profiles = let open Profiles in
   let profiles = Profiles.load_profiles profile profiles_url in
-  List.fold_while
+  CCList.fold_while
     (fun r profile -> match r with
     | `Ok set -> begin
       match StringSet.exists ((=) profile.name) set with
@@ -43,7 +43,7 @@ let rec _run added_profiles profile opam_repo_target profiles_url ssl_no_verify 
       | false -> begin
         let set = StringSet.add profile.name set in
         match _run set profile.name opam_repo_target profile.url ssl_no_verify
-      with 
+      with
       | `Ok _  -> `Ok set, `Continue
       | e -> e, `Stop end end
     | e -> e, `Stop
@@ -51,15 +51,22 @@ let rec _run added_profiles profile opam_repo_target profiles_url ssl_no_verify 
   Debug.print @@ Printf.sprintf
     "Applying profile \"%s\" to opam repository \"%s\". \n"
     profile opam_repo_target;
-  ignore(ok_or_fail @@ Profiles.checkout_profile ~ssl_no_verify profile profiles_url);
-  let set = ok_or_fail @@ add_profiles added_profiles in
+    ignore(ok_or_fail @@ Profiles.checkout_profile ~ssl_no_verify profile profiles_url);
+   let set = ok_or_fail @@ add_profiles added_profiles in
   let pin_entries = ok_or_fail @@ Pins.apply profile in
   let should_reinstall = let open Pins.Pin_entry in function
     | {name;_} as entry when should_reinstall entry -> Some name
     | _ -> None in
   let to_reinstall = CCList.filter_map should_reinstall pin_entries in
-  ignore(ok_or_fail @@ Packages.remove to_reinstall);
-  ignore(ok_or_fail @@ Packages.install ~ssl_no_verify profile);`Ok set
+  let to_install : StringSet.t =
+    StringSet.of_list (Packages.for_profile profile)
+    |> fun s -> StringSet.add_list s to_reinstall in
+  begin
+    ignore(ok_or_fail @@ Packages.remove ~force:true to_reinstall);
+    ignore(ok_or_fail @@ Packages.install ~ssl_no_verify
+      (to_install |> StringSet.to_list));
+    `Ok set
+  end
 
 let show_profile ?(depth=0) ~follow_profiles ~ssl_no_verify profile profiles_url = 
   ignore(ok_or_fail(Profiles.checkout_profile ~ssl_no_verify profile profiles_url));

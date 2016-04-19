@@ -22,6 +22,15 @@ begin
   `Ok (Printf.sprintf "remove: %s" (String.concat ", " packages))
 end
 
+let install ?ssl_no_verify packages =
+Env_options.with_env_opts ?ssl_no_verify @@ fun () ->
+begin
+  let atoms : OpamTypes.atom list = List.map
+  (fun p -> (OpamPackage.Name.of_string p, None)) packages in
+  O.install atoms None false;
+  `Ok (Printf.sprintf "install: %s" (String.concat ", " packages))
+end
+
 let remove_for_profile ?ssl_no_verify ?(force=true) profile =
   let packages = for_profile profile in
   match packages with
@@ -29,17 +38,8 @@ let remove_for_profile ?ssl_no_verify ?(force=true) profile =
   let remove () = remove ~force packages in
   Env_options.with_env_opts ?ssl_no_verify remove
 
-let install ?ssl_no_verify profile =
+let install_for_profile ?ssl_no_verify profile =
   let packages = for_profile profile in
-  match packages with
-  | [] -> `Ok ("No packages to install for " ^ profile) | _ ->
- let install () =
-   begin
-    let atoms : OpamTypes.atom list = List.map
-      (fun p -> (OpamPackage.Name.of_string p, None)) packages in
-    O.install atoms None false;
-    `Ok (Printf.sprintf "install: %s" (String.concat ", " packages))
-    end in
-  Env_options.with_env_opts ?ssl_no_verify install
+  install packages
 
 
