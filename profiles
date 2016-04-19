@@ -1,7 +1,6 @@
 developer-extras
-ocamlscript
 shell-support
 riakc_ppx
+or_errors
 prob-cache
 ocaml-profiles
-or_errors
