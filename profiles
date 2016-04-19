@@ -2,5 +2,6 @@ developer-extras
 shell-support
 riakc_ppx
 or_errors
+plplot
 prob-cache
 ocaml-profiles
